@@ -1,8 +1,8 @@
 
 ## Dependências:
 
-python ^3.6
-Flask 1.1.2
+- python ^3.6
+- Flask 1.1.2
 
 ## Como consfigurar o projeto
 
