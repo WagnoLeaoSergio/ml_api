@@ -4,7 +4,7 @@
 - python ^3.6
 - Flask 1.1.2
 
-## Como consfigurar o projeto
+## Como configurar o projeto
 
 Com o terminal na pasta do projeto, execute as seguintes linhas de código:
 
