@@ -6,6 +6,13 @@
 
 ## Como configurar o projeto
 
+Primeiramente inicie um ambiente virtual usando a biblioteca `virtualenv`:
+
+```bash
+virtualenv .venv
+. .venv/bin/activate
+```
+
 Com o terminal na pasta do projeto, execute as seguintes linhas de código:
 
 ```bash
@@ -26,7 +33,7 @@ Em seguida execute o comando abaixo para iniciar o serviço:
 flask run
 ```
 
-## Como criar a sua imagem do Docker
+## Como criar uma image Docker do projeto
 
 O Dockerfile do projeto já está incluso, para a criação da sua imagem basta executar o comando:
 
