@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 
@@ -34,7 +34,7 @@ class Measure(db.Model):
 def hello_world():
     return 'Hello, World!'
 
-@APP.route('/sensor', methods=['POST'])
+@APP.route('/sensor', methods=['GET', 'POST'])
 def sensor():
     """
     Rota que recebe dados de frequência cardíaca e armazena no banco de dados.
@@ -62,37 +62,47 @@ def sensor():
         "timestamp": current_date 
     }
 
-    for key in route_params:
-        if not key in request.form:
-            result_object["error"] = f"O valor '{key}' não foi fornecido."
+    if request.method == 'POST':
+        for key in route_params:
+            if not key in request.form:
+                result_object["error"] = f"O valor '{key}' não foi fornecido."
 
-    if not result_object["error"]:
-        medida = request.form['medida']
-        str_data = request.form['data']
+        if not result_object["error"]:
+            medida = request.form['medida']
+            str_data = request.form['data']
 
-        try:
-            measure_date = datetime.strptime(str_data, "%d/%m/%Y:%H:%M:%S")
-        except ValueError:
-            error_ = "O Valor de 'data' não é valido."
-            return { "result": None, "error": error_, "timestamp": current_date }
+            try:
+                measure_date = datetime.strptime(str_data, "%d/%m/%Y:%H:%M:%S")
+            except ValueError:
+                error_ = "O Valor de 'data' não é valido."
+                return { "result": None, "error": error_, "timestamp": current_date }
 
 
-        if not medida.replace('.', '', 1).isdigit():
-            result_object["error"] = "O Valor não é um número."
-        else:
-            measure = Measure(
-                    medida=float(medida),
-                    data=measure_date,
-                    timestamp=datetime.now()
+            if not medida.replace('.', '', 1).isdigit():
+                result_object["error"] = "O Valor não é um número."
+            else:
+                measure = Measure(
+                        medida=float(medida),
+                        data=measure_date,
+                        timestamp=datetime.now()
+                )
+                
+                db.session.add(measure)
+                db.session.commit()
+
+                result_object["result"] = f"O valor {request.form['medida']}" \
+                f" foi registrado."
+
+        return json.dumps(
+                result_object,
+                sort_keys=True
             )
-            
-            db.session.add(measure)
-            db.session.commit()
-
-            result_object["result"] = f"O valor {request.form['medida']}" \
-            f" foi registrado."
-
-    return json.dumps(
-            result_object,
-            sort_keys=True
-        )
+    else:
+        return jsonify([
+            dict(
+                id=msr.id,
+                medida=msr.medida,
+                data=msr.data,
+                timestamp=msr.timestamp
+            ) for msr in Measure.query.all()
+        ])
