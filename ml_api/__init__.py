@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
-from models import db, Measure
+from ml_api.models import db, Measure
 
 load_dotenv()
 APP = Flask(__name__)
