@@ -3,14 +3,17 @@ import json
 from datetime import datetime
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+from flask_migrate import Migrate
 
 from ml_api.models import db, Measure
 
 load_dotenv()
 APP = Flask(__name__)
 APP.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///measures.sqlite3"
+APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(APP)
+migrate = Migrate(APP, db)
 #os.getenv('VARIABLE')
 
 @APP.route('/hello')
