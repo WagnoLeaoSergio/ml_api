@@ -78,7 +78,14 @@ def sensor():
     ---------
     JSON (str): JSON com o resultado da operação.
     """
-    route_params = ['medida', 'data']
+    route_params = [
+            "maximo",
+            "minimo",
+            "frequencia",
+            "aumento_frequencia",
+            "data"
+    ]
+    #route_params = ['medida', 'data']
     current_date = datetime.now().strftime("%d/%m/%Y:%H:%M:%S")
     measure_date = None
     
@@ -94,30 +101,48 @@ def sensor():
                 result_object["error"] = f"O valor '{key}' não foi fornecido."
 
         if not result_object["error"]:
-            medida = request.form['medida']
+            # maximo = request.form['maximo']
+            # minimo = request.form['minimo']
+            # frequencia= request.form['frequencia']
+            # aumento_frequencia = request.form['aumento_frequencia']
             str_data = request.form['data']
-
             try:
                 measure_date = datetime.strptime(str_data, "%d/%m/%Y:%H:%M:%S")
             except ValueError:
                 error_ = "O Valor de 'data' não é valido."
                 return { "result": None, "error": error_, "timestamp": current_date }
 
+            params = ['maximo', 'minimo', 'frequencia', 'aumento_frequencia']
 
-            if not medida.replace('.', '', 1).isdigit():
-                result_object["error"] = "O Valor não é um número."
+            for param in params:
+                if not request.form[param].replace('.', '', 1).isdigit():
+                    result_object["error"] = "O Valor não é um número."
             else:
+                #: Carrega o modelo
+                local_dir = os.path.dirname(__file__)
+                mlModel_path = os.path.join(local_dir, "modelo.sav")
+                boostModel =  pickle.load(open(mlModel_path, "rb"))
+                
+                #: Faz a previsão
+                informacao_input = [request.form[col] for col in params]
+                bpm_previsto = boostModel.predict([informacao_input])
+
+                #: Salva os dados no banco
                 measure = Measure(
-                        medida=float(medida),
+                        maximo=float(request.form['maximo']),
+                        minimo=float(request.form['minimo']),
+                        frequencia=float(request.form['frequencia']),
+                        aumento_frequencia=float(request.form['aumento_frequencia']),
+                        previsao=float(bpm_previsto[0].round(2)),
                         data=measure_date,
                         timestamp=datetime.now()
                 )
                 
                 db.session.add(measure)
                 db.session.commit()
-
-                result_object["result"] = f"O valor {request.form['medida']}" \
-                f" foi registrado."
+                
+                result_object["previsao"] = bpm_previsto[0].round(2)
+                result_object["result"] = f"Valores armazenados com sucesso."
 
         return json.dumps(
                 result_object,
@@ -127,8 +152,12 @@ def sensor():
         return jsonify([
             dict(
                 id=msr.id,
-                medida=msr.medida,
                 data=msr.data,
-                timestamp=msr.timestamp
+                timestamp=msr.timestamp,
+                maximo=msr.maximo,
+                minimo=msr.minimo,
+                frequencia=msr.frequencia,
+                aumento_frequencia=msr.aumento_frequencia,
+                previsao=msr.previsao
             ) for msr in Measure.query.all()
         ])
