@@ -1,9 +1,12 @@
 import os
 import json
+import pickle
 from datetime import datetime
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from flask_migrate import Migrate
+
+from sklearn.ensemble import GradientBoostingRegressor
 
 from ml_api.models import db, Measure
 
@@ -13,12 +16,49 @@ APP.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///measures.sqlite3"
 APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(APP)
+
+with APP.app_context():
+    db.create_all()
+
 migrate = Migrate(APP, db)
 #os.getenv('VARIABLE')
 
+
+
 @APP.route('/hello')
 def hello_world():
+    """
+    Rota que retorna um texto escrito 'Hello, World!'
+    """
     return 'Hello, World!'
+
+@APP.route('/previsao/', methods=['POST'])
+def bpm():
+    """
+    Versão do Gabriel que recebe os dados de frequencia cardiaca e retorna a previsão gerada pelo modelo.
+    
+    Parameters
+    ---------
+    request (JSON): Objeto com o dados do usuario para serem usados na previsão.
+    
+    - maximo (float)
+    - minimo (float)
+    - frequencia (float)
+    - aumento_frequencia (float)
+
+    Returns
+    -------
+    response (JSON): Objeto Json com o campo 'previsao' contendo o resultado gerado pelo modelo.
+    """
+    local_dir = os.path.dirname(__file__)
+    mlModel_path = os.path.join(local_dir, "modelo.sav")
+    boost = pickle.load(open(mlModel_path, "rb"))
+
+    colunas = ['maximo', 'minimo', 'frequencia', 'aumento_frequencia']
+    informacao = request.get_json()
+    informacao_input = [informacao[col] for col in colunas]
+    bpm_previsto = boost.predict([informacao_input])
+    return jsonify(previsao=bpm_previsto[0].round(2))
 
 @APP.route('/sensor', methods=['GET', 'POST'])
 def sensor():
