@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 from flask_migrate import Migrate
 
-from sklearn.ensemble import GradientBoostingRegressor
+from werkzeug.utils import secure_filename
 
 from ml_api.models import db, Measure
 
@@ -14,6 +14,11 @@ load_dotenv()
 APP = Flask(__name__)
 APP.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///measures.sqlite3"
 APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+UPLOAD_FOLDER = './modelo/'
+ALLOWED_EXTENSIONS = {'sav'}
+
+APP.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 db.init_app(APP)
 
@@ -24,6 +29,21 @@ migrate = Migrate(APP, db)
 #os.getenv('VARIABLE')
 
 
+def allowed_file(filename):
+    """
+    Verifica se arquivo passado em *filename* é permitido pelo servidor.
+
+    Arguments
+    ---------
+
+    filename (str): Nome do arquivo.
+
+    Returns
+    -------
+    Um Bool com o resultado da verificação.
+    """
+    return '.' in filename and \
+    filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @APP.route('/hello')
 def hello_world():
@@ -122,7 +142,6 @@ def sensor():
                 local_dir = os.path.dirname(__file__)
                 mlModel_path = os.path.join(local_dir, "modelo.sav")
                 boostModel =  pickle.load(open(mlModel_path, "rb"))
-                
                 #: Faz a previsão
                 informacao_input = [request.form[col] for col in params]
                 bpm_previsto = boostModel.predict([informacao_input])
@@ -137,10 +156,8 @@ def sensor():
                         data=measure_date,
                         timestamp=datetime.now()
                 )
-                
                 db.session.add(measure)
                 db.session.commit()
-                
                 result_object["previsao"] = bpm_previsto[0].round(2)
                 result_object["result"] = f"Valores armazenados com sucesso."
 
@@ -161,3 +178,27 @@ def sensor():
                 previsao=msr.previsao
             ) for msr in Measure.query.all()
         ])
+
+@APP.route('/modelo', methods=['POST'])
+def upload_model():
+    """
+    Rota para fazer a atualização do modelo usado na previsão da frequência.'
+
+    Arguments
+    ---------
+    file (filepath): caminho do arquivo do modelo que será enviado.
+    """
+    if request.method == 'POST':
+        if not 'file' in request.files:
+            return { 'erro': 'Caminho para o arquivo não especificado.'}
+
+        file = request.files['file']
+        if not file.filename:
+            return { 'erro': 'Caminho para o arquivo não especificado.'}
+
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(APP.config['UPLOAD_FOLDER'], filename))
+            return {'result': f"Modelo atualizado com o arquivo {filename}."}
+        else:
+            return {'erro': 'Arquivo invalido.'}
