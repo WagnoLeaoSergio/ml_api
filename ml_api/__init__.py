@@ -12,12 +12,11 @@ from ml_api.models import db, Measure
 
 load_dotenv()
 APP = Flask(__name__)
-APP.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///measures.sqlite3"
-APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-UPLOAD_FOLDER = './modelo/'
+APP.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS')
+UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER')
 ALLOWED_EXTENSIONS = {'sav'}
-
 APP.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 db.init_app(APP)
@@ -26,8 +25,6 @@ with APP.app_context():
     db.create_all()
 
 migrate = Migrate(APP, db)
-#os.getenv('VARIABLE')
-
 
 def allowed_file(filename):
     """
