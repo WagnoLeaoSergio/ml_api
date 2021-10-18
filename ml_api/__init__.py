@@ -140,7 +140,7 @@ def sensor():
             else:
                 #: Carrega o modelo
                 local_dir = os.path.dirname(__file__)
-                mlModel_path = os.path.join(local_dir, "modelo.sav")
+                mlModel_path = os.path.join(local_dir, "../modelo/modelo.sav")
                 boostModel =  pickle.load(open(mlModel_path, "rb"))
                 #: Faz a previsão
                 informacao_input = [request.form[col] for col in params]
