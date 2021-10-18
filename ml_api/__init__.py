@@ -91,8 +91,11 @@ def sensor():
 
     Arguments
     ----------
-    medida (str): Valor que será armazenado.
-    data: (str): Data em que a medição foi feita no formato '%d/%m/%Y:%H:%M:%S'.
+    maximo (float): Valor maximo da medição
+    minimo (float): Valor mpinimo da medição
+    frequencia (float): Frequência cardíaca medida em BPM
+    aumento_frequencia (float): Aumento de frequência registrado
+
 
     Returns
     ---------
