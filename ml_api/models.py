@@ -2,11 +2,23 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+class User(db.Model):
+    """
+    Classe que representa a tabela no banco de dados dos usuários registrados no sistema.
+
+    Parameters
+    ----------
+    id (int): Id do usuario (chave-primaria).
+    apelido (str): apelido do usuario no sistema.
+    """
+    id = db.Column('id', db.Integer, primary_key=True)
+    apelido = db.Column('apelido', db.String(80), unique=True, nullable=False)
+
 class Measure(db.Model):
     """
     Classe que representa a tabela no banco de dados das medidas registradas.
 
-    Parameter
+    Parameters
     --------
 
     id (int): Id da medida (chave-primaria).
