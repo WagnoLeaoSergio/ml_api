@@ -4,13 +4,14 @@ from dotenv import load_dotenv
 from flask_migrate import Migrate
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from ml_api.models import db, Measure
+from ml_api.models import db, Measure, User
 
 from ml_api.routes.sensor import sensor
 
 load_dotenv()
 APP = Flask(__name__)
 
+APP.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 APP.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = os.getenv('SQLALCHEMY_TRACK_MODIFICATIONS')
 APP.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER')
@@ -26,7 +27,9 @@ migrate = Migrate(APP, db)
 APP.register_blueprint(sensor)
 
 ADMIN = Admin(APP, name='ml_api', template_mode='bootstrap3')
+
 ADMIN.add_view(ModelView(Measure, db.session))
+ADMIN.add_view(ModelView(User, db.session))
 
 if __name__ == '__main__':
     APP.run()
