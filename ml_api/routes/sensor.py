@@ -11,7 +11,7 @@ ALLOWED_EXTENSIONS = {'sav'}
 
 def allowed_file(filename):
     """
-    Verifica se arquivo passado em *filename* é permitido pelo servidor.
+    Verifica se arquivo passado em *filename* é permitido pela API.
 
     Arguments
     ---------
@@ -51,8 +51,8 @@ def bpm():
     response (JSON): Objeto Json com o campo 'previsao' contendo o resultado gerado pelo modelo.
     """
     local_dir = os.path.dirname(__file__)
-    mlModel_path = os.path.join(local_dir, "../../modelo/modelo.sav")
-    boost = pickle.load(open(mlModel_path, "rb"))
+    ml_model_path = os.path.join(local_dir, "../../modelo/modelo.sav")
+    boost = pickle.load(open(ml_model_path, "rb"))
 
     colunas = ['maximo', 'minimo', 'frequencia', 'aumento_frequencia']
     informacao = request.get_json()
@@ -123,11 +123,11 @@ def register_measure():
             else:
                 #: Carrega o modelo
                 local_dir = os.path.dirname(__file__)
-                mlModel_path = os.path.join(local_dir, "../../modelo/modelo.sav")
-                boostModel =  pickle.load(open(mlModel_path, "rb"))
+                ml_model_path = os.path.join(local_dir, "../../modelo/modelo.sav")
+                boost_model =  pickle.load(open(ml_model_path, "rb"))
                 #: Faz a previsão
                 informacao_input = [request.form[col] for col in params]
-                bpm_previsto = boostModel.predict([informacao_input])
+                bpm_previsto = boost_model.predict([informacao_input])
 
                 #: Salva os dados no banco
                 measure = Measure(
