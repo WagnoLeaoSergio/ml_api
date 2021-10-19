@@ -4,7 +4,7 @@ import pickle
 from datetime import datetime
 from flask import request, jsonify, Blueprint, current_app
 from werkzeug.utils import secure_filename
-from ml_api.models import db, Measure
+from ml_api.models import db, Measure, User
 
 sensor = Blueprint('sensor', __name__)
 ALLOWED_EXTENSIONS = {'sav'}
@@ -71,6 +71,7 @@ def register_measure():
 
     Arguments
     ----------
+    usuario (str): Apelido do usuario registrado no sistema.
     maximo (float): Valor maximo da medição
     minimo (float): Valor mpinimo da medição
     frequencia (float): Frequência cardíaca medida em BPM
@@ -82,13 +83,13 @@ def register_measure():
     JSON (str): JSON com o resultado da operação.
     """
     route_params = [
+            "usuario",
             "maximo",
             "minimo",
             "frequencia",
             "aumento_frequencia",
             "data"
     ]
-    #route_params = ['medida', 'data']
     current_date = datetime.now().strftime("%d/%m/%Y:%H:%M:%S")
     measure_date = None
     
@@ -99,23 +100,34 @@ def register_measure():
     }
 
     if request.method == 'POST':
+        
+        #:  Checa se o usuario existe.
+        usuario = User.query.filter_by(apelido=request.form['usuario']).first()
+        if not usuario:
+            return jsonify({'error': 'Usuário não encontrado'})
+
         for key in route_params:
             if not key in request.form:
                 result_object["error"] = f"O valor '{key}' não foi fornecido."
 
         if not result_object["error"]:
-            # maximo = request.form['maximo']
-            # minimo = request.form['minimo']
-            # frequencia= request.form['frequencia']
-            # aumento_frequencia = request.form['aumento_frequencia']
             str_data = request.form['data']
             try:
                 measure_date = datetime.strptime(str_data, "%d/%m/%Y:%H:%M:%S")
             except ValueError:
                 error_ = "O Valor de 'data' não é valido."
-                return { "result": None, "error": error_, "timestamp": current_date }
+                return {
+                        "result": None,
+                        "error": error_,
+                        "timestamp": current_date
+                }
 
-            params = ['maximo', 'minimo', 'frequencia', 'aumento_frequencia']
+            params = [
+                    'maximo',
+                    'minimo',
+                    'frequencia',
+                    'aumento_frequencia'
+            ]
 
             for param in params:
                 if not request.form[param].replace('.', '', 1).isdigit():
@@ -131,6 +143,7 @@ def register_measure():
 
                 #: Salva os dados no banco
                 measure = Measure(
+                        uid=int(usuario.id),
                         maximo=float(request.form['maximo']),
                         minimo=float(request.form['minimo']),
                         frequencia=float(request.form['frequencia']),
@@ -152,6 +165,7 @@ def register_measure():
         return jsonify([
             dict(
                 id=msr.id,
+                usuarioId=msr.uid,
                 data=msr.data,
                 timestamp=msr.timestamp,
                 maximo=msr.maximo,
