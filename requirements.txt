@@ -1,13 +1,16 @@
-alembic==1.7.3
+alembic==1.7.5
 astroid==2.8.2
+certifi==2022.6.15
+charset-normalizer==2.0.12
 click==8.0.1
-dataclasses==0.8
+dataclasses==0.7
 Flask==2.0.1
 Flask-Admin==1.5.8
 Flask-Migrate==3.1.0
 Flask-SQLAlchemy==2.5.1
 greenlet==1.1.1
 gunicorn==20.1.0
+idna==3.3
 importlib-metadata==4.8.1
 importlib-resources==5.2.2
 isort==5.9.3
@@ -22,6 +25,7 @@ numpy==1.19.5
 platformdirs==2.4.0
 pylint==2.11.1
 python-dotenv==0.19.0
+requests==2.27.1
 scikit-learn==0.24.2
 scipy==1.5.4
 SQLAlchemy==1.4.25
@@ -29,6 +33,7 @@ threadpoolctl==3.0.0
 toml==0.10.2
 typed-ast==1.4.3
 typing-extensions==3.10.0.2
+urllib3==1.26.9
 Werkzeug==2.0.1
 wrapt==1.12.1
 WTForms==2.3.3

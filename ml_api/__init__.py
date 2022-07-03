@@ -7,6 +7,7 @@ from flask_admin.contrib.sqla import ModelView
 from ml_api.models import db, Measure, User
 
 from ml_api.routes.sensor import sensor
+from ml_api.routes.gfit import gfit
 
 load_dotenv()
 APP = Flask(__name__)
@@ -25,6 +26,7 @@ with APP.app_context():
 migrate = Migrate(APP, db)
 
 APP.register_blueprint(sensor)
+APP.register_blueprint(gfit)
 
 ADMIN = Admin(APP, name='ml_api', template_mode='bootstrap3')
 
